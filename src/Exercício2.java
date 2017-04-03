@@ -16,7 +16,46 @@ public class Exercício2 {
             {0,     -0.25f,  0},
     };
 
-    public void pixelateFile(BufferedImage img, int pixelSize) throws IOException
+    public static void Convolve(BufferedImage img, float[][] kernel)
+    {
+        BufferedImage out = new BufferedImage(img.getWidth(),img.getHeight(), BufferedImage.TYPE_INT_RGB);
+
+        int r = 0, g = 0, b = 0;
+
+        for (int y = 0; y < img.getHeight(); y++) {
+            for (int x = 0; x < img.getWidth(); x++) {
+                r=0;
+                g=0;
+                b=0;
+
+                for(int i = 0; i < kernel.length; i++ ) {
+                    for(int j = 0; j < kernel.length; j++) {
+                        if(x + i >= 0 && y + j >= 0 && x + i < img.getWidth() && y + j <img.getHeight()) {
+                            r += (int)(new Color(img.getRGB(x+i, y+j)).getRed()*kernel[i][j]);
+                            g += (int)(new Color(img.getRGB(x+i, y+j)).getGreen()*kernel[i][j]);
+                            b += (int)(new Color(img.getRGB(x+i, y+j)).getBlue()*kernel[i][j]);
+
+                        } else {
+                            r += 0;
+                            g += 0;
+                            b += 0;
+                        }
+                    }
+                }
+
+                r = r < 0 ? r = 0 :(r > 255 ? r = 255: r);
+                g = g < 0 ? g = 0 :(g > 255 ? g = 255: g);
+                b = b < 0 ? b = 0 :(b > 255 ? b = 255: b);
+
+                out.setRGB(x, y, new Color(r,g,b).getRGB());
+            }
+        }
+
+        ImageIO.write(img, "png", new File("puppy_pixel1.png"));
+
+    }
+
+    public BufferedImage pixelateFile(BufferedImage img, int pixelSize) throws IOException
     {
         BufferedImage out = new BufferedImage(img.getWidth(), img.getHeight(),	BufferedImage.TYPE_INT_RGB);
 
@@ -25,21 +64,28 @@ public class Exercício2 {
             for(int x = 0 ; x < img.getWidth() ; x+=pixelSize)
             {
                 Color pixelColor = new Color(img.getRGB(x, y));
-
-                Graphics graphics = img.getGraphics();
-                graphics.setColor(pixelColor);
-                graphics.fillRect(x, y, pixelSize, pixelSize);
+                for (int y2 = 0; y2 < pixelSize; y2++) {
+                    for (int x2 = 0; x2 < pixelSize; x2++) {
+                        if((x+x2) < img.getWidth()) && (y+y2) < img.getHeight()) {
+                            img.setRGB(x2 + x, y2 + y, pixelColor.getRBG());
+                        }
+                    }
+                }
             }
         }
 
         // output file
-        ImageIO.write(img, "jpg", new File("puppy_pixel1.png"));
-
+       return out;
     }
 
     public void run() throws IOException {
         BufferedImage img = ImageIO.read(new File("puppy.png"));
-        pixelateFile(img, 10);
+        BufferedImage img1;
+        img1=pixelateFile(img, 10);
+
+        img1 = Convolve(img1,contrast);
+
+        ImageIO.write(img1, "png", new File("puppy_pixel_contrast.png"));
     }
 
     public static void main(String[] args) throws IOException {
